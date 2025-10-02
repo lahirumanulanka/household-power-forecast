@@ -1,0 +1,55 @@
+project:
+  name: household-power-forecast
+  description: Forecasting household global active power consumption.
+  target_variable: Global_active_power
+  frequency: 1_minute  # original dataset has 1-minute resolution
+  forecasting_horizon: 1440  # e.g., next 1440 minutes (1 day) adjustable
+  metrics:
+    - mae
+    - rmse
+    - mape
+    - r2
+paths:
+  raw_data: data/raw/household_power_consumption.txt
+  processed_data: data/processed/processed.parquet
+  features: data/processed/features.parquet
+  models: models/
+  experiments: experiments/
+models:
+  prophet:
+    daily_seasonality: auto
+    weekly_seasonality: auto
+    yearly_seasonality: auto
+  lstm:
+    input_sequence_length: 120
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.2
+    batch_size: 64
+    learning_rate: 0.001
+    epochs: 30
+    optimizer: adam
+  sarimax:
+    order: [2,1,2]
+    seasonal_order: [1,1,1,1440]
+  tft:
+    hidden_size: 64
+    attention_heads: 4
+    dropout: 0.1
+    learning_rate: 0.0005
+    batch_size: 64
+    max_epochs: 50
+feature_engineering:
+  lags: [1,2,3,5,10,30,60,120,240,1440]
+  rolling:
+    - {window: 5, stats: [mean,std]}
+    - {window: 15, stats: [mean,std]}
+    - {window: 60, stats: [mean,std,min,max]}
+    - {window: 1440, stats: [mean,std,min,max]}
+  calendar: [minute, hour, dayofweek]
+train:
+  validation_strategy: time_series_split
+  n_splits: 3
+  test_size: 10080  # last 7 days for testing
+  scaler: standard
+random_seed: 42

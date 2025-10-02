@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Environments
+.venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data artifacts
+/data/processed/*
+!/data/processed/.gitkeep
+/models/*
+!/models/.gitkeep
+/experiments/*
+!/experiments/.gitkeep
+
+# OS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Cache
+.cache/
+
+# PyTorch/TensorFlow
+*.pt
+*.pth
+*.h5
+
+# Prophet
+**/prophet_metadata.json
