@@ -1,0 +1,39 @@
+
+### Model Performance Summary:
+
+**Best Performing Models:**
+- Tree-based models (XGBoost, LightGBM) typically show superior performance
+- LSTM effective for capturing temporal dependencies
+- Prophet provides good baseline with uncertainty quantification
+
+**Model Strengths:**
+1. **XGBoost/LightGBM**: 
+   - Best for complex feature interactions
+   - Fast training and prediction
+   - Feature importance for interpretability
+
+2. **LSTM**:
+   - Captures long-term dependencies
+   - Works well with raw sequential data
+   - Flexible architecture
+
+3. **Prophet**:
+   - Automatic seasonality detection
+   - Handles missing data well
+   - Provides uncertainty intervals
+
+4. **SARIMA**:
+   - Statistical foundation
+   - Well-established methodology
+   - Works with limited data
+
+**Model Limitations:**
+- Deep learning requires more data and tuning
+- Tree models may not extrapolate well
+- Statistical models assume stationarity
+
+**Recommendations:**
+- Use ensemble of top models for production
+- XGBoost for point forecasts
+- Prophet for uncertainty quantification
+- Regular retraining with new data
