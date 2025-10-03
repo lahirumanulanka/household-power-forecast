@@ -1,0 +1,11 @@
+{
+  "total_observations": 2075259,
+  "date_range": "2006-12-16 17:24:00 to 2010-11-26 21:02:00",
+  "duration_days": 1441,
+  "missing_percentage": 1.2518437457686005,
+  "target_mean": 1.0916150365006243,
+  "target_std": 1.0572941610941602,
+  "target_min": 0.076,
+  "target_max": 11.122,
+  "outlier_percentage": 4.631236336664585
+}
