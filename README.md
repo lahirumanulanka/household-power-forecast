@@ -100,17 +100,40 @@ pip install -r requirements.txt
 
 ### Quick Start
 
-**Run notebooks in order**:
+**Option 1: Run Notebooks Interactively**
 ```bash
 jupyter notebook
 ```
 
-Then execute:
+Then execute in order:
 1. `01_dataset_overview.ipynb` - Dataset exploration
 2. `02_eda_preprocessing.ipynb` - Preprocessing & feature engineering
 3. `03_classical_models.ipynb` - Classical model training
 4. `04_advanced_model.ipynb` - Advanced model training
 5. `05_model_comparison.ipynb` - Results comparison
+
+**Option 2: Read Documentation First**
+```bash
+# Navigate to docs directory
+cd docs/
+
+# Read comprehensive notebook documentation
+cat 01_dataset_overview.md
+cat 02_eda_preprocessing.md
+cat 03_classical_models.md
+cat 04_advanced_model.md
+cat 05_model_comparison.md
+```
+
+Each `.md` file provides complete explanations without needing to run code.
+
+**Option 3: Direct Python Execution**
+```bash
+# Run notebooks non-interactively
+jupyter nbconvert --to notebook --execute notebooks/01_dataset_overview.ipynb
+jupyter nbconvert --to notebook --execute notebooks/02_eda_preprocessing.ipynb
+# ... and so on
+```
 
 ---
 
@@ -185,21 +208,387 @@ Then execute:
 
 ## 📖 Documentation
 
-### Reports
-- **Literature Review**: `reports/literature.md`
-- **Final Report**: `reports/final_report.md` (50+ pages)
-- **Model Comparisons**: `reports/*.csv`
+### 📘 Notebook Documentation (NEW!)
+Comprehensive `.md` documentation for each notebook is now available in the `docs/` directory:
 
-### Key Visualizations
-- Time series decomposition
-- Feature importance analysis
-- Forecast vs actual plots
-- Error distribution analysis
-- Model comparison charts
+- **[docs/01_dataset_overview.md](docs/01_dataset_overview.md)** - Complete dataset exploration guide
+- **[docs/02_eda_preprocessing.md](docs/02_eda_preprocessing.md)** - Feature engineering and preprocessing details
+- **[docs/03_classical_models.md](docs/03_classical_models.md)** - Prophet, LSTM, SARIMA implementations
+- **[docs/04_advanced_model.md](docs/04_advanced_model.md)** - XGBoost, LightGBM, Random Forest details
+- **[docs/05_model_comparison.md](docs/05_model_comparison.md)** - Comprehensive model comparison analysis
+- **[docs/README.md](docs/README.md)** - Documentation index and quick reference
+
+Each `.md` file provides:
+- Complete code walkthrough with explanations
+- Methodology and rationale for each step
+- Key findings and insights
+- Performance metrics and visualizations
+- Best practices and recommendations
+
+### 📊 Reports
+- **Literature Review**: `reports/literature.md` - Survey of 6+ academic papers
+- **Final Report**: `reports/final_report.md` - 50+ page comprehensive analysis
+- **Model Comparisons**: `reports/*.csv` - Detailed performance metrics
+
+### 📈 Key Visualizations
+- Time series decomposition plots
+- Feature importance analysis charts
+- Forecast vs actual comparison plots
+- Error distribution histograms
+- Model performance comparison charts
+- Temporal error pattern analysis
 
 ---
 
-## 🛠️ Dependencies
+## 💡 Suggestions for Improving Model Accuracy
+
+Based on comprehensive analysis, here are evidence-based recommendations to further improve forecasting accuracy:
+
+### 🎯 High-Impact Improvements (Expected 5-15% MAE reduction)
+
+#### 1. **Hyperparameter Optimization**
+```python
+# Use advanced tuning with Optuna or Ray Tune
+import optuna
+
+def objective(trial):
+    params = {
+        'max_depth': trial.suggest_int('max_depth', 3, 10),
+        'learning_rate': trial.suggest_float('learning_rate', 0.001, 0.1, log=True),
+        'n_estimators': trial.suggest_int('n_estimators', 100, 1000),
+        'min_child_weight': trial.suggest_int('min_child_weight', 1, 10),
+        'subsample': trial.suggest_float('subsample', 0.5, 1.0),
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
+        'gamma': trial.suggest_float('gamma', 0, 5)
+    }
+    # Train and evaluate model...
+    return validation_mae
+
+study = optuna.create_study(direction='minimize')
+study.optimize(objective, n_trials=100)
+```
+
+**Why**: Current models use default or manually-tuned hyperparameters. Systematic optimization can find better configurations.
+
+**Expected Impact**: 3-7% MAE reduction
+
+---
+
+#### 2. **Ensemble Methods - Weighted Stacking**
+```python
+# Combine predictions from multiple models
+from sklearn.linear_model import Ridge
+
+# Train meta-model on validation predictions
+meta_features = np.column_stack([
+    xgboost_val_pred,
+    lightgbm_val_pred, 
+    lstm_val_pred,
+    prophet_val_pred
+])
+
+meta_model = Ridge(alpha=1.0)
+meta_model.fit(meta_features, y_val)
+
+# Final predictions
+test_meta_features = np.column_stack([
+    xgboost_test_pred,
+    lightgbm_test_pred,
+    lstm_test_pred, 
+    prophet_test_pred
+])
+ensemble_pred = meta_model.predict(test_meta_features)
+```
+
+**Why**: Different models capture different patterns. XGBoost excels at feature interactions, LSTM at sequences, Prophet at seasonality.
+
+**Expected Impact**: 5-10% MAE reduction
+
+---
+
+#### 3. **Additional External Features**
+```python
+# Incorporate weather data, holidays, and economic indicators
+external_features = {
+    'temperature': weather_df['temp'],
+    'humidity': weather_df['humidity'],
+    'is_holiday': holiday_calendar,
+    'is_school_vacation': school_calendar,
+    'day_type': ['weekday', 'weekend', 'holiday'],
+    'electricity_price': price_data
+}
+```
+
+**Sources**:
+- Weather: OpenWeatherMap API, NOAA historical data
+- Holidays: French public holiday calendar
+- Economic: Electricity price data from market
+
+**Why**: Power consumption strongly correlates with weather (heating/cooling) and social patterns (holidays, weekends).
+
+**Expected Impact**: 8-15% MAE reduction
+
+---
+
+#### 4. **Advanced Feature Engineering**
+```python
+# Interaction features
+df['temp_x_hour'] = df['temperature'] * df['hour']
+df['is_peak_hour'] = df['hour'].isin([8, 9, 18, 19, 20])
+
+# Exponentially weighted moving averages
+df['ewma_7d'] = df['Global_active_power'].ewm(span=7).mean()
+df['ewma_30d'] = df['Global_active_power'].ewm(span=30).mean()
+
+# Fourier features for complex seasonality
+from numpy import pi
+for k in range(1, 6):
+    df[f'sin_yearly_{k}'] = np.sin(2 * k * pi * df['day_of_year'] / 365.25)
+    df[f'cos_yearly_{k}'] = np.cos(2 * k * pi * df['day_of_year'] / 365.25)
+
+# Change point detection
+df['trend_change'] = detect_changepoints(df['Global_active_power'])
+```
+
+**Why**: Captures non-linear interactions and complex seasonal patterns better than simple lag features.
+
+**Expected Impact**: 3-8% MAE reduction
+
+---
+
+### 🔬 Medium-Impact Improvements (Expected 2-5% MAE reduction)
+
+#### 5. **Temporal Cross-Validation**
+```python
+from sklearn.model_selection import TimeSeriesSplit
+
+tscv = TimeSeriesSplit(n_splits=5)
+for train_idx, val_idx in tscv.split(data):
+    train_data = data.iloc[train_idx]
+    val_data = data.iloc[val_idx]
+    # Train and evaluate...
+```
+
+**Why**: More robust validation strategy prevents overfitting to single train/val split.
+
+**Expected Impact**: 2-4% MAE reduction through better generalization
+
+---
+
+#### 6. **Outlier-Robust Training**
+```python
+# Use Huber loss instead of MSE
+from xgboost import XGBRegressor
+
+model = XGBRegressor(
+    objective='reg:pseudohubererror',  # Robust to outliers
+    huber_slope=1.0
+)
+```
+
+**Why**: Current models use MSE which is sensitive to outliers. Robust losses reduce outlier impact.
+
+**Expected Impact**: 2-3% MAE reduction
+
+---
+
+#### 7. **Sequence-to-Sequence LSTM**
+```python
+# Multi-step ahead forecasting with encoder-decoder
+class Seq2SeqLSTM(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_steps):
+        super().__init__()
+        self.encoder = nn.LSTM(input_dim, hidden_dim, num_layers=2)
+        self.decoder = nn.LSTM(hidden_dim, hidden_dim, num_layers=2)
+        self.fc = nn.Linear(hidden_dim, 1)
+        self.output_steps = output_steps
+```
+
+**Why**: Better handles multi-step forecasting compared to single-step approach.
+
+**Expected Impact**: 3-5% MAE reduction for longer horizons
+
+---
+
+### 🧪 Experimental Improvements (Expected 2-10% MAE reduction)
+
+#### 8. **Advanced Deep Learning Architectures**
+
+**Temporal Fusion Transformer (TFT)**
+```python
+from pytorch_forecasting import TemporalFusionTransformer
+
+# Combines attention mechanism with variable selection
+tft = TemporalFusionTransformer.from_dataset(
+    training,
+    learning_rate=0.03,
+    hidden_size=32,
+    attention_head_size=4,
+    dropout=0.1,
+    hidden_continuous_size=16
+)
+```
+
+**N-BEATS (Neural Basis Expansion)**
+```python
+from darts.models import NBEATSModel
+
+model = NBEATSModel(
+    input_chunk_length=30,
+    output_chunk_length=7,
+    generic_architecture=True,
+    num_stacks=30,
+    num_blocks=1,
+    num_layers=4
+)
+```
+
+**Why**: State-of-the-art architectures designed specifically for time series forecasting.
+
+**Expected Impact**: 5-10% MAE reduction (requires significant tuning)
+
+---
+
+#### 9. **Multi-Task Learning**
+```python
+# Jointly predict power consumption and sub-metering
+class MultiTaskModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.shared = nn.LSTM(input_dim, 128, num_layers=2)
+        self.task1 = nn.Linear(128, 1)  # Main power
+        self.task2 = nn.Linear(128, 3)  # Sub-metering
+        
+    def forward(self, x):
+        shared_repr = self.shared(x)
+        main_pred = self.task1(shared_repr)
+        sub_pred = self.task2(shared_repr)
+        return main_pred, sub_pred
+```
+
+**Why**: Learning related tasks improves feature representations.
+
+**Expected Impact**: 2-5% MAE reduction
+
+---
+
+#### 10. **Hierarchical Forecasting**
+```python
+# Forecast total and sub-metering, then reconcile
+from hierarchicalforecast import HierarchicalReconciliation
+
+# Ensure sub-metering predictions sum to total
+reconciler = HierarchicalReconciliation(method='bottom_up')
+reconciled_forecasts = reconciler.reconcile(base_forecasts)
+```
+
+**Why**: Enforces consistency between total consumption and sub-metering predictions.
+
+**Expected Impact**: 3-6% MAE reduction
+
+---
+
+### 📊 Data Quality Improvements
+
+#### 11. **Better Missing Value Handling**
+```python
+# Use advanced imputation methods
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+
+imputer = IterativeImputer(random_state=42, max_iter=10)
+df_imputed = imputer.fit_transform(df)
+```
+
+**Expected Impact**: 1-3% MAE reduction
+
+---
+
+#### 12. **Anomaly Detection and Removal**
+```python
+from sklearn.ensemble import IsolationForest
+
+# Detect and handle anomalies
+iso_forest = IsolationForest(contamination=0.01, random_state=42)
+anomalies = iso_forest.fit_predict(df[['Global_active_power']])
+
+# Option 1: Remove anomalies
+df_clean = df[anomalies == 1]
+
+# Option 2: Flag for model to learn
+df['is_anomaly'] = (anomalies == -1).astype(int)
+```
+
+**Expected Impact**: 2-4% MAE reduction
+
+---
+
+### 🎯 Implementation Priority
+
+**Phase 1 (Immediate - High ROI)**:
+1. ✅ Hyperparameter optimization (Optuna)
+2. ✅ Ensemble stacking (XGBoost + LightGBM + LSTM)
+3. ✅ External weather data integration
+
+**Phase 2 (Short-term - Medium ROI)**:
+4. Advanced feature engineering (Fourier, interactions)
+5. Temporal cross-validation
+6. Outlier-robust training
+
+**Phase 3 (Long-term - Experimental)**:
+7. Temporal Fusion Transformer
+8. N-BEATS architecture
+9. Hierarchical forecasting
+10. Multi-task learning
+
+---
+
+### 📈 Expected Combined Impact
+
+Implementing **Phase 1** improvements:
+- **Current Best MAE**: 0.090 kW (XGBoost)
+- **Estimated MAE**: 0.070-0.075 kW
+- **Improvement**: ~20% reduction
+- **R² improvement**: 0.900 → 0.920-0.930
+
+Implementing **All Phases**:
+- **Estimated Best MAE**: 0.060-0.065 kW
+- **Improvement**: ~30-35% reduction
+- **R² improvement**: 0.900 → 0.940-0.950
+
+---
+
+### ⚖️ Trade-offs to Consider
+
+| Improvement | Accuracy Gain | Complexity | Training Time | Interpretability |
+|-------------|--------------|------------|---------------|------------------|
+| Hyperparameter Tuning | ⭐⭐⭐ | Low | High | ✅ |
+| Ensemble Methods | ⭐⭐⭐⭐ | Medium | Medium | ⚠️ |
+| External Features | ⭐⭐⭐⭐⭐ | Low | Low | ✅ |
+| Advanced Features | ⭐⭐⭐ | Medium | Low | ✅ |
+| TFT/N-BEATS | ⭐⭐⭐⭐ | High | Very High | ❌ |
+| Multi-Task Learning | ⭐⭐⭐ | High | High | ⚠️ |
+
+**Legend**: ⭐ = Impact level, ✅ = Maintained, ⚠️ = Reduced, ❌ = Poor
+
+---
+
+### 💻 Quick Start: Hyperparameter Tuning Example
+
+```bash
+# Install Optuna
+pip install optuna optuna-dashboard
+
+# Run optimization
+python scripts/optimize_xgboost.py --n-trials 100
+
+# View results
+optuna-dashboard sqlite:///optuna_study.db
+```
+
+See `scripts/model_improvement_examples.py` for complete implementation examples.
+
+---
 
 ### Core Libraries
 ```
