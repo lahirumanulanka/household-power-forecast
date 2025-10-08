@@ -1,0 +1,9 @@
+{
+  "model_display": "LSTM",
+  "model_key": "lstm",
+  "val_rmse": 0.1859600062131546,
+  "test_rmse": 0.26138163659946306,
+  "artifact_path": "../models/classical_20251008_141256/lstm_state_dict.pt",
+  "run_dir": "../models/classical_20251008_141256",
+  "created_at": "2025-10-08T14:12:56"
+}

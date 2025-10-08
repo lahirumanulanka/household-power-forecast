@@ -22,3 +22,4 @@ darts>=0.27.0
 optuna>=3.3.0
 pyarrow>=12.0.0
 tqdm>=4.65.0
+python-docx>=0.8.11

@@ -1,0 +1,9 @@
+{
+  "model_display": "XGBoost",
+  "model_key": "xgboost",
+  "val_rmse": 0.011557,
+  "test_rmse": 0.012455,
+  "artifact_path": "../models/advanced_20251008_141626/xgboost_model.json",
+  "run_dir": "../models/advanced_20251008_141626",
+  "created_at": "2025-10-08T14:16:26"
+}

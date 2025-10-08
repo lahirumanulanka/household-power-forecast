@@ -1,0 +1,18 @@
+{
+  "created_at": "2025-10-08T14:12:56",
+  "notebook": "03_classical_models.ipynb",
+  "target": "Global_active_power",
+  "lstm": {
+    "sequence_length": 30,
+    "feature_cols": [
+      "Global_active_power"
+    ],
+    "device": "cpu"
+  },
+  "baselines": {
+    "naive": "shift(1)",
+    "moving_average": {
+      "window": 7
+    }
+  }
+}
